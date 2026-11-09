@@ -16,13 +16,13 @@ const verifyAuth = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ error: 'Acceso denegado: Token no proporcionado' });
+    return res.status(401).json({ error: 'Acceso denegado porque no hay token' });
   }
 
   const { data: { user }, error } = await supabase.auth.getUser(token);
 
   if (error || !user) {
-    return res.status(401).json({ error: 'Acceso denegado: Token inválido o expirado' });
+    return res.status(401).json({ error: 'Acceso invalido' });
   }
 
   req.user = user;
