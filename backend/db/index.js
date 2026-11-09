@@ -1,6 +1,9 @@
-const impl =
-  process.env.DB_MODE === "postgres"
-    ? await import("./postgres.js")
-    : await import("./mock.js");
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 
-export const { getAll, create, update, remove } = impl;
+dotenv.config();
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
