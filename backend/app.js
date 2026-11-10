@@ -7,7 +7,14 @@ const app = express()
 
 dotenv.config();
 
-app.use(cors())
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
@@ -28,6 +35,10 @@ const verifyAuth = async (req, res, next) => {
   req.user = user;
   next();
 };
+
+app.get("/api/health", async (req, res) => {
+  res.send("holaaaaaaaaaaa")
+})
 
 // todo el crud de notas usando supabase
 
@@ -68,7 +79,7 @@ app.put('/api/notas/:id', verifyAuth, async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
   res.json(data[0]);
 });
- 
+
 app.delete('/api/notas/:id', verifyAuth, async (req, res) => {
   const { id } = req.params;
 
