@@ -39,7 +39,14 @@ const verifyAuth = async (req, res, next) => {
 // todo el crud de notas usando supabase
 
 app.post('/api/notas', verifyAuth, async (req, res) => {
-  const { title, content, status = 'pending', position = 1000 } = req.body;
+  const {
+    title,
+    content,
+    status = 'pending',
+    position = 1000,
+    priority = 'medium',
+    due_date = null
+  } = req.body;
 
   const { data, error } = await supabase
     .from('notes')
@@ -48,7 +55,9 @@ app.post('/api/notas', verifyAuth, async (req, res) => {
       title,
       content,
       status,
-      position
+      position,
+      priority,
+      due_date
     }])
     .select();
 
