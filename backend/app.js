@@ -7,7 +7,14 @@ const app = express()
 
 dotenv.config();
 
-app.use(cors())
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
@@ -32,23 +39,30 @@ const verifyAuth = async (req, res, next) => {
 // todo el crud de notas usando supabase
 
 app.post('/api/notas', verifyAuth, async (req, res) => {
-  const { title, content, status = 'pending' } = req.body;
+  const { title, content, status = 'pending', position = 1000 } = req.body;
 
   const { data, error } = await supabase
     .from('notes')
-    .insert([{ user_id: req.user.id, title, content, status }])
+    .insert([{
+      user_id: req.user.id,
+      title,
+      content,
+      status,
+      position
+    }])
     .select();
 
   if (error) return res.status(500).json({ error: error.message });
   res.status(201).json(data[0]);
 });
 
+
 app.get('/api/notas', verifyAuth, async (req, res) => {
   const { data, error } = await supabase
     .from('notes')
     .select('*')
     .eq('user_id', req.user.id)
-    .order('created_at', { ascending: false });
+    .order('position', { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
@@ -56,7 +70,10 @@ app.get('/api/notas', verifyAuth, async (req, res) => {
 
 app.put('/api/notas/:id', verifyAuth, async (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
+  const updates = {
+    ...req.body,
+    updated_at: new Date().toISOString()
+  };
 
   const { data, error } = await supabase
     .from('notes')
@@ -68,7 +85,7 @@ app.put('/api/notas/:id', verifyAuth, async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
   res.json(data[0]);
 });
- 
+
 app.delete('/api/notas/:id', verifyAuth, async (req, res) => {
   const { id } = req.params;
 
