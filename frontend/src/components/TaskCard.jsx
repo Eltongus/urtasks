@@ -1,0 +1,126 @@
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, Trash2, Calendar, AlertCircle } from 'lucide-react';
+
+export function TaskCard({ note, onDelete, onEdit, isOverlay = false }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: note.id,
+    data: {
+      type: 'Note',
+      note,
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="h-24 rounded-xl border-2 border-dashed border-indigo-400 bg-indigo-50/50 opacity-50"
+      />
+    );
+  }
+
+  const PRIORITY_STYLES = {
+    low: { label: 'Baja', classes: 'bg-slate-100 text-slate-600' },
+    medium: { label: 'Media', classes: 'bg-amber-50 text-amber-700 border border-amber-200/60' },
+    high: { label: 'Alta', classes: 'bg-rose-50 text-rose-700 border border-rose-200/60' },
+  };
+
+  const getDueDateInfo = (dateStr) => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const due = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isCompleted = note.status === 'completed';
+    return {
+      formatted: due.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }),
+      isOverdue: !isCompleted && due < today,
+      isToday: !isCompleted && due.getTime() === today.getTime(),
+    };
+  };
+
+  const priorityConfig = PRIORITY_STYLES[note.priority] || PRIORITY_STYLES.medium;
+  const dateInfo = getDueDateInfo(note.due_date);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      onClick={() => !isOverlay && onEdit?.(note)}
+      className={`group relative flex cursor-pointer flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:border-indigo-300 hover:shadow-md ${isOverlay ? 'rotate-2 scale-105 cursor-grabbing shadow-xl ring-2 ring-indigo-500' : ''
+        }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+            className="cursor-grab touch-none rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 active:cursor-grabbing"
+            title="Arrastrar tarea"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+          <h3 className="font-semibold text-slate-800 line-clamp-1">
+            {note.title}
+          </h3>
+        </div>
+
+        {!isOverlay && onDelete && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(note.id);
+            }}
+            className="rounded p-1 text-slate-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+            title="Eliminar tarea"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {note.content && (
+        <p className="pl-7 text-sm text-slate-600 line-clamp-2">
+          {note.content}
+        </p>
+      )}
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-2 pl-7">
+        <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${priorityConfig.classes}`}>
+          {priorityConfig.label}
+        </span>
+
+        {dateInfo && (
+          <span
+            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${dateInfo.isOverdue
+                ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
+                : dateInfo.isToday
+                  ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
+                  : 'bg-slate-50 text-slate-500'
+              }`}
+          >
+            {dateInfo.isOverdue ? <AlertCircle className="h-3 w-3" /> : <Calendar className="h-3 w-3" />}
+            {dateInfo.formatted}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}

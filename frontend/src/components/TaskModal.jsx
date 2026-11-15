@@ -1,0 +1,233 @@
+import { useState, useEffect } from 'react';
+import { X, Trash2, Calendar, Layers, Flag } from 'lucide-react';
+import { PRIORITY_OPTIONS, STATUS_OPTIONS } from '../constants/kanban';
+
+export function TaskModal({
+    isOpen,
+    onClose,
+    note = null,
+    defaultStatus = 'pending',
+    onSave,
+    onDelete,
+}) {
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [status, setStatus] = useState(defaultStatus);
+    const [saving, setSaving] = useState(false);
+    const [priority, setPriority] = useState('medium');
+    const [dueDate, setDueDate] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            if (note) {
+                setTitle(note.title || '');
+                setContent(note.content || '');
+                setStatus(note.status || 'pending');
+                setPriority(note ? (note.priority || 'medium') : 'medium');
+                setDueDate(note?.due_date ? note.due_date.split('T')[0] : '');
+            } else {
+                setTitle('');
+                setContent('');
+                setStatus(defaultStatus);
+                setPriority('medium');
+                setDueDate('');
+            }
+        }
+    }, [isOpen, note, defaultStatus]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') onClose();
+        };
+        if (isOpen) window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!title.trim() || saving) return;
+
+        setSaving(true);
+        try {
+            await onSave({
+                id: note?.id,
+                title: title.trim(),
+                content: content.trim(),
+                status,
+                priority,
+                due_date: dueDate || null,
+            });
+            onClose();
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return null;
+        return new Date(dateString).toLocaleDateString('es-CO', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
+
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs transition-opacity"
+            onClick={onClose}
+        >
+            <div
+                className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <header className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-6 py-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                        <Layers className="h-4 w-4 text-indigo-600" />
+                        <span>{note ? 'Detalles de la tarea' : 'Nueva tarea'}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-700"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+                </header>
+
+                <form onSubmit={handleSubmit} className="p-6">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                Título
+                            </label>
+                            <input
+                                type="text"
+                                autoFocus
+                                required
+                                placeholder="Ej. Diseñar arquitectura de base de datos"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-base font-medium text-slate-800 placeholder:font-normal placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                <Flag className="h-3.5 w-3.5" /> Prioridad
+                            </label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {PRIORITY_OPTIONS.map((opt) => (
+                                    <button
+                                        key={opt.id}
+                                        type="button"
+                                        onClick={() => setPriority(opt.id)}
+                                        className={`rounded-xl border py-2 text-sm font-medium transition-all ${priority === opt.id ? opt.activeClass : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                            }`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    Estado / Columna
+                                </label>
+                                <select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none"
+                                >
+                                    {STATUS_OPTIONS.map((opt) => (
+                                        <option key={opt.id} value={opt.id}>{opt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    <Calendar className="h-3.5 w-3.5" /> Fecha límite
+                                </label>
+                                <input
+                                    type="date"
+                                    value={dueDate}
+                                    onChange={(e) => setDueDate(e.target.value)}
+                                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                Descripción
+                            </label>
+                            <textarea
+                                rows={4}
+                                placeholder="Añade detalles, enlaces o criterios de aceptación..."
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                            />
+                        </div>
+
+                        {note?.created_at && (
+                            <div className="flex flex-wrap items-center gap-4 rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs text-slate-500">
+                                <div className="flex items-center gap-1.5">
+                                    <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                                    <span>Creada: {formatDate(note.created_at)}</span>
+                                </div>
+                                {note.updated_at && (
+                                    <span>• Actualizada: {formatDate(note.updated_at)}</span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+                        {note ? (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onDelete(note.id);
+                                    onClose();
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                Eliminar
+                            </button>
+                        ) : (
+                            <div />
+                        )}
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                            >
+                                {saving ? 'Guardando...' : note ? 'Guardar cambios' : 'Crear tarea'}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
