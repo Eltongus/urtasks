@@ -8,7 +8,7 @@ import { BoardHeader } from './BoardHeader';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 import { TaskModal } from './TaskModal';
-import { Search, X } from 'lucide-react';
+import TaskFilters from './TaskFilters';
 
 export function KanbanBoard() {
   const { session, logout } = useAuth();
@@ -31,16 +31,35 @@ export function KanbanBoard() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [onlyOverdue, setOnlyOverdue] = useState(false);
+  const isNoteOverdue = (note) => {
+    if (!note.due_date || note.status === 'completed') return false;
+    const [year, month, day] = note.due_date.split('-').map(Number);
+    const due = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return due < today;
+  };
+
+  const overdueCount = useMemo(
+    () => notes.filter(isNoteOverdue).length,
+    [notes]
+  );
 
   const filteredNotes = useMemo(() => {
     return notes.filter((note) => {
       const matchesSearch =
         note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (note.content && note.content.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesPriority = priorityFilter === 'all' || note.priority === priorityFilter;
-      return matchesSearch && matchesPriority;
+
+      const matchesPriority =
+        priorityFilter === 'all' || note.priority === priorityFilter;
+
+      const matchesOverdue = !onlyOverdue || isNoteOverdue(note);
+
+      return matchesSearch && matchesPriority && matchesOverdue;
     });
-  }, [notes, searchQuery, priorityFilter]);
+  }, [notes, searchQuery, priorityFilter, onlyOverdue]);
 
   const openCreateModal = (defaultStatus = 'pending') =>
     setModalState({ isOpen: true, note: null, defaultStatus });
@@ -66,46 +85,15 @@ export function KanbanBoard() {
         onLogout={logout}
       />
 
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar por titulo o descripcion..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 pr-9 pl-10 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-1">
-          {[
-            { id: 'all', label: 'Todas' },
-            { id: 'high', label: 'Alta' },
-            { id: 'medium', label: 'Media' },
-            { id: 'low', label: 'Baja' },
-          ].map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              onClick={() => setPriorityFilter(filter.id)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${priorityFilter === filter.id ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100'
-                }`}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-      </div>
+     <TaskFilters 
+        searchQuery={searchQuery} 
+        setSearchQuery={setSearchQuery} 
+        priorityFilter={priorityFilter} 
+        setPriorityFilter={setPriorityFilter} 
+        onlyOverdue={onlyOverdue} 
+        setOnlyOverdue={setOnlyOverdue} 
+        overdueCount={overdueCount} 
+      />
 
       <DndContext
         sensors={sensors}
