@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, Calendar, Layers, Flag } from 'lucide-react';
+import { X, Trash2, Calendar, Layers, Flag, CheckSquare, Plus } from 'lucide-react';
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from '../constants/kanban';
 
 export function TaskModal({
@@ -13,9 +13,11 @@ export function TaskModal({
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [status, setStatus] = useState(defaultStatus);
-    const [saving, setSaving] = useState(false);
     const [priority, setPriority] = useState('medium');
     const [dueDate, setDueDate] = useState('');
+    const [subtasks, setSubtasks] = useState([]);
+    const [newSubtaskText, setNewSubtaskText] = useState('');
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -23,15 +25,18 @@ export function TaskModal({
                 setTitle(note.title || '');
                 setContent(note.content || '');
                 setStatus(note.status || 'pending');
-                setPriority(note ? (note.priority || 'medium') : 'medium');
-                setDueDate(note?.due_date ? note.due_date.split('T')[0] : '');
+                setPriority(note.priority || 'medium');
+                setDueDate(note.due_date ? note.due_date.split('T')[0] : '');
+                setSubtasks(Array.isArray(note.subtasks) ? note.subtasks : []);
             } else {
                 setTitle('');
                 setContent('');
                 setStatus(defaultStatus);
                 setPriority('medium');
                 setDueDate('');
+                setSubtasks([]);
             }
+            setNewSubtaskText('');
         }
     }, [isOpen, note, defaultStatus]);
 
@@ -44,6 +49,43 @@ export function TaskModal({
     }, [isOpen, onClose]);
 
     if (!isOpen) return null;
+
+    const handleAddSubtask = () => {
+        const trimmed = newSubtaskText.trim();
+        if (!trimmed) return;
+
+        const newItem = {
+            id: crypto.randomUUID(),
+            text: trimmed,
+            completed: false,
+        };
+
+        setSubtasks((prev) => [...prev, newItem]);
+        setNewSubtaskText('');
+    };
+
+    const handleSubtaskKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddSubtask();
+        }
+    };
+
+    const handleToggleSubtask = (subtaskId) => {
+        setSubtasks((prev) =>
+            prev.map((st) =>
+                st.id === subtaskId ? { ...st, completed: !st.completed } : st
+            )
+        );
+    };
+
+    const handleDeleteSubtask = (subtaskId) => {
+        setSubtasks((prev) => prev.filter((st) => st.id !== subtaskId));
+    };
+
+    const completedCount = subtasks.filter((st) => st.completed).length;
+    const progressPercent =
+        subtasks.length > 0 ? Math.round((completedCount / subtasks.length) * 100) : 0;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -58,6 +100,7 @@ export function TaskModal({
                 status,
                 priority,
                 due_date: dueDate || null,
+                subtasks,
             });
             onClose();
         } finally {
@@ -75,8 +118,6 @@ export function TaskModal({
             minute: '2-digit',
         });
     };
-
-
 
     return (
         <div
@@ -179,6 +220,87 @@ export function TaskModal({
                             />
                         </div>
 
+                        {/* Sección de Subtareas / Checklist */}
+                        <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+                            <div className="mb-2.5 flex items-center justify-between">
+                                <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                                    <CheckSquare className="h-3.5 w-3.5 text-indigo-600" />
+                                    Checklist ({completedCount}/{subtasks.length})
+                                </label>
+                                {subtasks.length > 0 && (
+                                    <span className="text-xs font-semibold text-indigo-600">
+                                        {progressPercent}%
+                                    </span>
+                                )}
+                            </div>
+
+                            {subtasks.length > 0 && (
+                                <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-300 ${progressPercent === 100 ? 'bg-emerald-500' : 'bg-indigo-600'
+                                            }`}
+                                        style={{ width: `${progressPercent}%` }}
+                                    />
+                                </div>
+                            )}
+
+                            {subtasks.length > 0 && (
+                                <ul className="mb-3 space-y-1.5">
+                                    {subtasks.map((st) => (
+                                        <li
+                                            key={st.id}
+                                            className="group flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-sm shadow-2xs ring-1 ring-slate-200/60"
+                                        >
+                                            <label className="flex flex-1 cursor-pointer items-center gap-2.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={st.completed}
+                                                    onChange={() => handleToggleSubtask(st.id)}
+                                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                <span
+                                                    className={`transition-colors ${st.completed
+                                                        ? 'text-slate-400 line-through'
+                                                        : 'text-slate-700'
+                                                        }`}
+                                                >
+                                                    {st.text}
+                                                </span>
+                                            </label>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteSubtask(st.id)}
+                                                className="rounded p-1 text-slate-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+                                                title="Quitar paso"
+                                            >
+                                                <X className="h-3.5 w-3.5" />
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Añadir un paso y presionar Enter..."
+                                    value={newSubtaskText}
+                                    onChange={(e) => setNewSubtaskText(e.target.value)}
+                                    onKeyDown={handleSubtaskKeyDown}
+                                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleAddSubtask}
+                                    className="inline-flex items-center gap-1 rounded-lg bg-slate-200/80 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-300/80"
+                                >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Añadir
+                                </button>
+                            </div>
+                        </div>
+
                         {note?.created_at && (
                             <div className="flex flex-wrap items-center gap-4 rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs text-slate-500">
                                 <div className="flex items-center gap-1.5">
@@ -227,7 +349,7 @@ export function TaskModal({
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

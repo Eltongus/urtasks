@@ -45,7 +45,8 @@ app.post('/api/notas', verifyAuth, async (req, res) => {
     status = 'pending',
     position = 1000,
     priority = 'medium',
-    due_date = null
+    due_date = null,
+    subtasks = []
   } = req.body;
 
   const { data, error } = await supabase
@@ -57,7 +58,8 @@ app.post('/api/notas', verifyAuth, async (req, res) => {
       status,
       position,
       priority,
-      due_date
+      due_date,
+      subtasks
     }])
     .select();
 

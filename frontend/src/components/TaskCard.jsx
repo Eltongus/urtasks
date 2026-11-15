@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Calendar, AlertCircle } from 'lucide-react';
+import { GripVertical, Trash2, Calendar, AlertCircle, CheckSquare } from 'lucide-react';
 
 export function TaskCard({ note, onDelete, onEdit, isOverlay = false }) {
   const {
@@ -57,6 +57,11 @@ export function TaskCard({ note, onDelete, onEdit, isOverlay = false }) {
   const priorityConfig = PRIORITY_STYLES[note.priority] || PRIORITY_STYLES.medium;
   const dateInfo = getDueDateInfo(note.due_date);
 
+  const subtasks = Array.isArray(note.subtasks) ? note.subtasks : [];
+  const totalSubtasks = subtasks.length;
+  const completedSubtasks = subtasks.filter((st) => st.completed).length;
+  const progressPercent = totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
+
   return (
     <div
       ref={setNodeRef}
@@ -102,6 +107,28 @@ export function TaskCard({ note, onDelete, onEdit, isOverlay = false }) {
           {note.content}
         </p>
       )}
+
+      {totalSubtasks > 0 && (
+        <div className="pl-7">
+          <div className="mb-1 flex items-center justify-between text-xs text-slate-500">
+            <span className="inline-flex items-center gap-1 font-medium">
+              <CheckSquare className="h-3.5 w-3.5 text-slate-400" />
+              Subtareas
+            </span>
+            <span className="font-semibold text-slate-600">
+              {completedSubtasks}/{totalSubtasks}
+            </span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${progressPercent === 100 ? 'bg-emerald-500' : 'bg-indigo-500'
+                }`}
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="mt-1 flex flex-wrap items-center justify-between gap-2 pl-7">
         <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${priorityConfig.classes}`}>
           {priorityConfig.label}
@@ -110,10 +137,10 @@ export function TaskCard({ note, onDelete, onEdit, isOverlay = false }) {
         {dateInfo && (
           <span
             className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${dateInfo.isOverdue
-                ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
-                : dateInfo.isToday
-                  ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
-                  : 'bg-slate-50 text-slate-500'
+              ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
+              : dateInfo.isToday
+                ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
+                : 'bg-slate-50 text-slate-500'
               }`}
           >
             {dateInfo.isOverdue ? <AlertCircle className="h-3 w-3" /> : <Calendar className="h-3 w-3" />}
