@@ -9,6 +9,7 @@ import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 import { TaskModal } from './TaskModal';
 import TaskFilters from './TaskFilters';
+import { Search, X, AlertCircle, Filter, Tag } from 'lucide-react';
 
 export function KanbanBoard() {
   const { session, logout } = useAuth();
@@ -29,6 +30,8 @@ export function KanbanBoard() {
     defaultStatus: 'pending',
   });
 
+  const [tagFilter, setTagFilter] = useState('all');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [onlyOverdue, setOnlyOverdue] = useState(false);
@@ -46,6 +49,20 @@ export function KanbanBoard() {
     [notes]
   );
 
+  const availableTags = useMemo(() => {
+    const map = new Map();
+    notes.forEach((note) => {
+      if (Array.isArray(note.tags)) {
+        note.tags.forEach((t) => {
+          if (!map.has(t.name.toLowerCase())) {
+            map.set(t.name.toLowerCase(), t);
+          }
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [notes]);
+
   const filteredNotes = useMemo(() => {
     return notes.filter((note) => {
       const matchesSearch =
@@ -57,9 +74,14 @@ export function KanbanBoard() {
 
       const matchesOverdue = !onlyOverdue || isNoteOverdue(note);
 
-      return matchesSearch && matchesPriority && matchesOverdue;
+      const matchesTag =
+        tagFilter === 'all' ||
+        (Array.isArray(note.tags) &&
+          note.tags.some((t) => t.name.toLowerCase() === tagFilter.toLowerCase()));
+
+      return matchesSearch && matchesPriority && matchesOverdue && matchesTag;
     });
-  }, [notes, searchQuery, priorityFilter, onlyOverdue]);
+  }, [notes, searchQuery, priorityFilter, onlyOverdue, tagFilter]);
 
   const openCreateModal = (defaultStatus = 'pending') =>
     setModalState({ isOpen: true, note: null, defaultStatus });
@@ -85,14 +107,17 @@ export function KanbanBoard() {
         onLogout={logout}
       />
 
-     <TaskFilters 
-        searchQuery={searchQuery} 
-        setSearchQuery={setSearchQuery} 
-        priorityFilter={priorityFilter} 
-        setPriorityFilter={setPriorityFilter} 
-        onlyOverdue={onlyOverdue} 
-        setOnlyOverdue={setOnlyOverdue} 
-        overdueCount={overdueCount} 
+      <TaskFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        priorityFilter={priorityFilter}
+        setPriorityFilter={setPriorityFilter}
+        onlyOverdue={onlyOverdue}
+        setOnlyOverdue={setOnlyOverdue}
+        overdueCount={overdueCount}
+        availableTags={availableTags}
+        tagFilter={tagFilter}
+        setTagFilter={setTagFilter}
       />
 
       <DndContext

@@ -1,7 +1,7 @@
-import { Search, X, AlertCircle, Filter } from 'lucide-react';
+import { Search, X, AlertCircle, Filter, Tag } from 'lucide-react';
 
 
-export default function TaskFilters({ searchQuery, setSearchQuery, priorityFilter, setPriorityFilter, onlyOverdue, setOnlyOverdue, overdueCount }) {
+export default function TaskFilters({ searchQuery, setSearchQuery, priorityFilter, setPriorityFilter, onlyOverdue, setOnlyOverdue, overdueCount, availableTags, tagFilter, setTagFilter }) {
     return (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative flex-1 max-w-md">
@@ -38,6 +38,24 @@ export default function TaskFilters({ searchQuery, setSearchQuery, priorityFilte
                         <option value="low">Prioridad: Baja</option>
                     </select>
                 </div>
+
+                {availableTags.length > 0 && (
+                    <div className="relative flex items-center">
+                        <Tag className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-slate-400" />
+                        <select
+                            value={tagFilter}
+                            onChange={(e) => setTagFilter(e.target.value)}
+                            className="cursor-pointer rounded-xl border border-slate-200 bg-white py-2 pr-8 pl-8 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 focus:border-indigo-500 focus:outline-none"
+                        >
+                            <option value="all">Etiqueta: Todas</option>
+                            {availableTags.map((t) => (
+                                <option key={t.name} value={t.name}>
+                                    {t.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
                 <button
                     type="button"

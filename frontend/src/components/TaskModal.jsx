@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, Calendar, Layers, Flag, CheckSquare, Plus } from 'lucide-react';
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from '../constants/kanban';
+import { X, Trash2, Calendar, Layers, Flag, CheckSquare, Plus, Tag } from 'lucide-react';
+import { TAG_COLORS, getTagColorClasses } from '../constants/kanban';
 
 export function TaskModal({
     isOpen,
@@ -18,6 +19,9 @@ export function TaskModal({
     const [subtasks, setSubtasks] = useState([]);
     const [newSubtaskText, setNewSubtaskText] = useState('');
     const [saving, setSaving] = useState(false);
+    const [tags, setTags] = useState([]);
+    const [newTagName, setNewTagName] = useState('');
+    const [selectedTagColor, setSelectedTagColor] = useState('indigo');
 
     useEffect(() => {
         if (isOpen) {
@@ -28,6 +32,7 @@ export function TaskModal({
                 setPriority(note.priority || 'medium');
                 setDueDate(note.due_date ? note.due_date.split('T')[0] : '');
                 setSubtasks(Array.isArray(note.subtasks) ? note.subtasks : []);
+                setTags(Array.isArray(note.tags) ? note.tags : []);
             } else {
                 setTitle('');
                 setContent('');
@@ -35,8 +40,11 @@ export function TaskModal({
                 setPriority('medium');
                 setDueDate('');
                 setSubtasks([]);
+                setTags([]);
             }
             setNewSubtaskText('');
+            setNewTagName('');
+            setSelectedTagColor('indigo');
         }
     }, [isOpen, note, defaultStatus]);
 
@@ -101,6 +109,7 @@ export function TaskModal({
                 priority,
                 due_date: dueDate || null,
                 subtasks,
+                tags
             });
             onClose();
         } finally {
@@ -117,6 +126,33 @@ export function TaskModal({
             hour: '2-digit',
             minute: '2-digit',
         });
+    };
+
+    const handleAddTag = () => {
+        const trimmed = newTagName.trim();
+        if (!trimmed) return;
+
+        if (tags.some((t) => t.name.toLowerCase() === trimmed.toLowerCase())) {
+            setNewTagName('');
+            return;
+        }
+
+        setTags((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), name: trimmed, color: selectedTagColor },
+        ]);
+        setNewTagName('');
+    };
+
+    const handleTagKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddTag();
+        }
+    };
+
+    const handleRemoveTag = (tagId) => {
+        setTags((prev) => prev.filter((t) => t.id !== tagId));
     };
 
     return (
@@ -175,6 +211,73 @@ export function TaskModal({
                                         {opt.label}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                <Tag className="h-3.5 w-3.5" /> Etiquetas
+                            </label>
+
+                            {/* Etiquetas asignadas */}
+                            {tags.length > 0 && (
+                                <div className="mb-2.5 flex flex-wrap gap-1.5">
+                                    {tags.map((tag) => {
+                                        const colorStyle = getTagColorClasses(tag.color);
+                                        return (
+                                            <span
+                                                key={tag.id}
+                                                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${colorStyle.bg} ${colorStyle.text}`}
+                                            >
+                                                {tag.name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveTag(tag.id)}
+                                                    className="rounded-full p-0.5 hover:bg-black/10"
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Input + Paleta de colores */}
+                            <div className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 sm:flex-row sm:items-center">
+                                <input
+                                    type="text"
+                                    placeholder="Nombre de etiqueta (ej. Backend)..."
+                                    value={newTagName}
+                                    onChange={(e) => setNewTagName(e.target.value)}
+                                    onKeyDown={handleTagKeyDown}
+                                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none"
+                                />
+
+                                <div className="flex items-center justify-between gap-2">
+                                    {/* Selector de puntos de color */}
+                                    <div className="flex items-center gap-1.5 px-1">
+                                        {TAG_COLORS.map((c) => (
+                                            <button
+                                                key={c.id}
+                                                type="button"
+                                                onClick={() => setSelectedTagColor(c.id)}
+                                                title={c.label}
+                                                className={`h-5 w-5 rounded-full transition-transform ${c.dot} ${selectedTagColor === c.id ? 'scale-125 ring-2 ring-slate-400 ring-offset-1' : 'opacity-70 hover:opacity-100'
+                                                    }`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleAddTag}
+                                        className="inline-flex items-center gap-1 rounded-lg bg-slate-200/80 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-300/80"
+                                    >
+                                        <Plus className="h-3.5 w-3.5" />
+                                        Añadir
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

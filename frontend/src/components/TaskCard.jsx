@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2, Calendar, AlertCircle, CheckSquare } from 'lucide-react';
+import { getTagColorClasses } from '../constants/kanban';
 
 export function TaskCard({ note, onDelete, onEdit, isOverlay = false }) {
   const {
@@ -17,6 +18,8 @@ export function TaskCard({ note, onDelete, onEdit, isOverlay = false }) {
       note,
     },
   });
+
+  const tags = Array.isArray(note.tags) ? note.tags : [];
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -106,6 +109,23 @@ export function TaskCard({ note, onDelete, onEdit, isOverlay = false }) {
         <p className="pl-7 text-sm text-slate-600 line-clamp-2">
           {note.content}
         </p>
+      )}
+
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pl-7">
+          {tags.map((tag) => {
+            const colorStyle = getTagColorClasses(tag.color);
+            return (
+              <span
+                key={tag.id || tag.name}
+                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold ${colorStyle.bg} ${colorStyle.text}`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${colorStyle.dot}`} />
+                {tag.name}
+              </span>
+            );
+          })}
+        </div>
       )}
 
       {totalSubtasks > 0 && (

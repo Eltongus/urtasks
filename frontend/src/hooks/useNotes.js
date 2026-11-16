@@ -27,7 +27,7 @@ export function useNotes(token) {
         [notes]
     );
 
-    const saveNote = async ({ id, title, content, status, priority, due_date, subtasks = [] }) => {
+    const saveNote = async ({ id, title, content, status, priority, due_date, subtasks = [], tags = [] }) => {
         if (!id) {
             const created = await notesService.create(token, {
                 title,
@@ -36,6 +36,7 @@ export function useNotes(token) {
                 priority,
                 due_date,
                 subtasks,
+                tags,
                 position: getNextPosition(status),
             });
             setNotes((prev) => [...prev, created]);
@@ -54,6 +55,7 @@ export function useNotes(token) {
             priority,
             due_date,
             subtasks,
+            tags,
         });
 
         setNotes((prev) =>
