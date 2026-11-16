@@ -7,7 +7,6 @@ import { useKanbanDnd } from '../hooks/useKanbanDnd';
 import { BoardHeader } from './BoardHeader';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
-import { TaskModal } from './TaskModal';
 import TaskFilters from './TaskFilters';
 
 export function KanbanBoard({

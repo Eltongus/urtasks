@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar';
 import { KanbanBoard } from './KanbanBoard';
 import { CalendarView } from '../pages/Calendar';
 // import { StatsView } from '../pages/Stats';
-import { TaskModal } from './TaskModal';
+import { TaskModal } from './modal/TaskModal';
 import { CheckCircle2 } from 'lucide-react';
 
 
