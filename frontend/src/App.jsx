@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { KanbanBoard } from './components/KanbanBoard';
+import { DashboardLayout } from './components/DashboardLayout';
 
 const PrivateRoute = ({ children }) => {
   const { session } = useAuth();
@@ -19,7 +19,7 @@ export default function App() {
 
           <Route path="/" element={
             <PrivateRoute>
-              <KanbanBoard />
+              <DashboardLayout />
             </PrivateRoute>
           } />
         </Routes>

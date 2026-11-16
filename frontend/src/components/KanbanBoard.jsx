@@ -9,25 +9,20 @@ import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 import { TaskModal } from './TaskModal';
 import TaskFilters from './TaskFilters';
-import { Search, X, AlertCircle, Filter, Tag } from 'lucide-react';
 
-export function KanbanBoard() {
-  const { session, logout } = useAuth();
-  const token = session?.access_token;
-
-  const { notes, setNotes, loading, saveNote, deleteNote, updateNotePosition } =
-    useNotes(token);
-
+export function KanbanBoard({
+  notes,
+  setNotes,
+  deleteNote,
+  loading,
+  updateNotePosition,
+  onNewTask,
+  onEditTask,
+}) {
   const { sensors, activeNote, dndHandlers } = useKanbanDnd({
     notes,
     setNotes,
     onPersistMove: updateNotePosition,
-  });
-
-  const [modalState, setModalState] = useState({
-    isOpen: false,
-    note: null,
-    defaultStatus: 'pending',
   });
 
   const [tagFilter, setTagFilter] = useState('all');
@@ -83,15 +78,6 @@ export function KanbanBoard() {
     });
   }, [notes, searchQuery, priorityFilter, onlyOverdue, tagFilter]);
 
-  const openCreateModal = (defaultStatus = 'pending') =>
-    setModalState({ isOpen: true, note: null, defaultStatus });
-
-  const openEditModal = (note) =>
-    setModalState({ isOpen: true, note, defaultStatus: note.status });
-
-  const closeModal = () =>
-    setModalState((prev) => ({ ...prev, isOpen: false }));
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center text-slate-500">
@@ -103,8 +89,7 @@ export function KanbanBoard() {
   return (
     <div className="mx-auto max-w-7xl p-6">
       <BoardHeader
-        onNewTask={() => openCreateModal('pending')}
-        onLogout={logout}
+        onNewTask={onNewTask}
       />
 
       <TaskFilters
@@ -132,8 +117,8 @@ export function KanbanBoard() {
               column={col}
               notes={filteredNotes.filter((n) => n.status === col.id)}
               onDeleteNote={deleteNote}
-              onEditNote={openEditModal}
-              onAddNote={openCreateModal}
+              onEditNote={onEditTask}
+              onAddNote={onNewTask}
             />
           ))}
         </div>
@@ -142,15 +127,6 @@ export function KanbanBoard() {
           {activeNote ? <TaskCard note={activeNote} isOverlay /> : null}
         </DragOverlay>
       </DndContext>
-
-      <TaskModal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        note={modalState.note}
-        defaultStatus={modalState.defaultStatus}
-        onSave={saveNote}
-        onDelete={deleteNote}
-      />
     </div>
   );
 }
