@@ -16,7 +16,6 @@ export const processDailyReminders = async () => {
     const todayStr = today.toISOString().split('T')[0];
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-    // Buscar tareas no completadas que venzan hoy o mañana y no hayan sido notificadas
     const { data: notes, error } = await supabaseAdmin
       .from('notes')
       .select('id, user_id, title, content, priority, due_date')

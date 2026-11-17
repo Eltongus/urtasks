@@ -3,7 +3,7 @@ import { supabase } from './lib/supabase'
 async function request(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession()
 
-  const res = await fetch(`http://localhost:3000/api${path}`, {
+  const res = await fetch(`https://urtasks-s1qo.onrender.com/api${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',

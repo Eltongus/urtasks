@@ -5,7 +5,6 @@ dotenv.config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Cambia esto cuando verifiques un dominio propio en Resend
 const FROM_EMAIL = 'UrTasks <alertas@urtasks.xyz>';
 
 export const sendDueTasksEmail = async ({ to, userName, tasks, todayStr }) => {
