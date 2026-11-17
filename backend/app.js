@@ -36,6 +36,10 @@ const verifyAuth = async (req, res, next) => {
   next();
 };
 
+app.get("/api/health", async (req, res) => {
+  res.send("holaaaaaaaaaaa")
+})
+
 // todo el crud de notas usando supabase
 
 app.post('/api/notas', verifyAuth, async (req, res) => {
