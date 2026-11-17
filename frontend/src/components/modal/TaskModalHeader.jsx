@@ -4,9 +4,11 @@ import { STATUS_OPTIONS } from '../../constants/kanban';
 export function TaskModalHeader({ title, onTitleChange, status, onStatusChange }) {
     return (
         <div className="mb-6 pr-8">
-            <div className="flex items-start gap-3">
-                <CreditCard className="mt-1.5 h-5 w-5 shrink-0 text-slate-700" />
-                <div className="w-full">
+            <div className="flex items-start gap-3.5">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
+                    <CreditCard className="h-5 w-5" />
+                </div>
+                <div className="w-full min-w-0">
                     <input
                         type="text"
                         autoFocus
@@ -14,14 +16,14 @@ export function TaskModalHeader({ title, onTitleChange, status, onStatusChange }
                         placeholder="Título de la tarea..."
                         value={title}
                         onChange={(e) => onTitleChange(e.target.value)}
-                        className="-ml-1.5 w-full rounded-md bg-transparent px-1.5 py-0.5 text-xl font-bold text-slate-800 placeholder:font-semibold placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-sky-600 focus:outline-none"
+                        className="-ml-2 w-full rounded-lg border border-transparent bg-transparent px-2 py-1 text-xl font-bold tracking-tight text-slate-800 transition-colors placeholder:font-semibold placeholder:text-slate-400 hover:border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:outline-none"
                     />
-                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                         <span>en la lista</span>
                         <select
                             value={status}
                             onChange={(e) => onStatusChange(e.target.value)}
-                            className="cursor-pointer rounded bg-transparent font-medium text-slate-700 underline decoration-slate-400 underline-offset-2 hover:text-slate-900 focus:outline-none"
+                            className="cursor-pointer rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-200/70 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 focus:outline-none"
                         >
                             {STATUS_OPTIONS.map((opt) => (
                                 <option key={opt.id} value={opt.id}>

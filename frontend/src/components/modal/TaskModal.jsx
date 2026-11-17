@@ -90,17 +90,19 @@ export function TaskModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-4 pt-10 backdrop-blur-xs transition-opacity sm:pt-16"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-4 pt-10 backdrop-blur-sm transition-opacity sm:pt-16"
             onClick={onClose}
         >
             <div
-                className="relative w-full max-w-3xl rounded-xl bg-[#f4f5f7] p-6 text-slate-800 shadow-2xl sm:p-7"
+                role="dialog"
+                aria-modal="true"
+                className="relative w-full max-w-3xl rounded-2xl border border-slate-200/70 bg-white p-6 text-slate-800 shadow-2xl shadow-slate-900/20 sm:p-8"
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
                     type="button"
                     onClick={onClose}
-                    className="absolute top-4 right-4 rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-200/80 hover:text-slate-800"
+                    className="absolute top-4 right-4 rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:outline-none"
                     aria-label="Cerrar"
                 >
                     <X className="h-5 w-5" />
@@ -114,8 +116,8 @@ export function TaskModal({
                         onStatusChange={setStatus}
                     />
 
-                    <div className="flex flex-col gap-6 md:flex-row">
-                        <div className="flex-1 space-y-6">
+                    <div className="flex flex-col gap-8 md:flex-row">
+                        <div className="min-w-0 flex-1 space-y-7">
                             <TaskMetadataBar
                                 currentPriority={currentPriority}
                                 tags={tags}
@@ -126,9 +128,9 @@ export function TaskModal({
 
                             {/* Descripcion */}
                             <div>
-                                <div className="mb-2.5 flex items-center gap-3">
-                                    <AlignLeft className="h-5 w-5 shrink-0 text-slate-700" />
-                                    <h3 className="text-base font-bold text-slate-800">
+                                <div className="mb-3 flex items-center gap-3">
+                                    <AlignLeft className="h-5 w-5 shrink-0 text-slate-500" />
+                                    <h3 className="text-base font-bold tracking-tight text-slate-800">
                                         Descripción
                                     </h3>
                                 </div>
@@ -138,7 +140,7 @@ export function TaskModal({
                                         placeholder="Añade una descripción más detallada..."
                                         value={content}
                                         onChange={(e) => setContent(e.target.value)}
-                                        className="w-full resize-none rounded-md bg-slate-200/70 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-500 transition-colors hover:bg-slate-200 focus:bg-white focus:ring-2 focus:ring-sky-600 focus:outline-none"
+                                        className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-3 text-sm leading-relaxed text-slate-800 shadow-xs transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -151,7 +153,7 @@ export function TaskModal({
                             />
 
                             {note?.created_at && (
-                                <div className="pl-8 pt-2 text-xs text-slate-400">
+                                <div className="space-y-0.5 border-t border-slate-100 pt-4 pl-8 text-xs text-slate-400">
                                     <p>Creada: {formatDate(note.created_at)}</p>
                                     {note.updated_at && (
                                         <p>Actualizada: {formatDate(note.updated_at)}</p>
@@ -160,24 +162,26 @@ export function TaskModal({
                             )}
                         </div>
 
-                        <TaskSidebar
-                            activeMenu={activeSidebarMenu}
-                            onToggleMenu={toggleMenu}
-                            tags={tags}
-                            onAddTag={(tag) => setTags((prev) => [...prev, tag])}
-                            priority={priority}
-                            onSelectPriority={setPriority}
-                            dueDate={dueDate}
-                            onChangeDueDate={setDueDate}
-                            onOpenChecklist={() => setIsAddingSubtask(true)}
-                            isEditing={Boolean(note)}
-                            saving={saving}
-                            onDelete={() => {
-                                onDelete(note.id);
-                                onClose();
-                            }}
-                            onClose={onClose}
-                        />
+                        <div className="md:border-l md:border-slate-200 md:pl-8">
+                            <TaskSidebar
+                                activeMenu={activeSidebarMenu}
+                                onToggleMenu={toggleMenu}
+                                tags={tags}
+                                onAddTag={(tag) => setTags((prev) => [...prev, tag])}
+                                priority={priority}
+                                onSelectPriority={setPriority}
+                                dueDate={dueDate}
+                                onChangeDueDate={setDueDate}
+                                onOpenChecklist={() => setIsAddingSubtask(true)}
+                                isEditing={Boolean(note)}
+                                saving={saving}
+                                onDelete={() => {
+                                    onDelete(note.id);
+                                    onClose();
+                                }}
+                                onClose={onClose}
+                            />
+                        </div>
                     </div>
                 </form>
             </div>
