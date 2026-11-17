@@ -55,11 +55,11 @@ export function DashboardLayout() {
         );
     }
 
-    return (
-        <div className="flex min-h-screen flex-col bg-slate-50 md:flex-row">
+       return (
+        <div className="flex min-h-screen flex-col bg-linear-to-br from-slate-50 via-slate-50 to-indigo-50/60 text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900 md:flex-row">
             <Sidebar activeView={activeView} onSelectView={setActiveView} />
 
-            <main className="flex-1 overflow-y-auto">
+            <main className="min-w-0 flex-1 overflow-y-auto">
                 {activeView === 'board' && (
                     <KanbanBoard
                         notes={notes}

@@ -85,8 +85,8 @@ export function KanbanBoard({
     );
   }
 
-  return (
-    <div className="mx-auto max-w-7xl p-6">
+   return (
+    <div className="mx-auto w-full max-w-7xl p-4 pb-10 sm:p-6 sm:pb-10 lg:p-8 lg:pb-10">
       <BoardHeader
         onNewTask={onNewTask}
       />
@@ -109,7 +109,10 @@ export function KanbanBoard({
         collisionDetection={closestCorners}
         {...dndHandlers}
       >
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <section
+          aria-label="Tablero Kanban"
+          className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5 lg:gap-6"
+        >
           {KANBAN_COLUMNS.map((col) => (
             <KanbanColumn
               key={col.id}
@@ -120,7 +123,7 @@ export function KanbanBoard({
               onAddNote={onNewTask}
             />
           ))}
-        </div>
+        </section>
 
         <DragOverlay>
           {activeNote ? <TaskCard note={activeNote} isOverlay /> : null}
