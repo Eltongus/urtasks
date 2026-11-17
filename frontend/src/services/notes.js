@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://urtasks-s1qo.onrender.com/api/notas';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/notas';
 
 const getHeaders = (token) => ({
   'Content-Type': 'application/json',

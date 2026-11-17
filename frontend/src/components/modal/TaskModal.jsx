@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { X, AlignLeft } from 'lucide-react';
+import { X, AlignLeft, Bell } from 'lucide-react';
 import { PRIORITY_OPTIONS } from '../../constants/kanban';
 import { TaskModalHeader } from './TaskModalHeader';
 import { TaskMetadataBar } from './TaskMetadataBar';
-import { TaskChecklist } from './TaskChecklist'; 
+import { TaskChecklist } from './TaskChecklist';
 import { TaskSidebar } from './TaskSidebar';
+import { useAuth } from '../../context/AuthContext';
 
 const formatDate = (dateString) => {
     if (!dateString) return null;
@@ -33,6 +34,35 @@ export function TaskModal({
     const [subtasks, setSubtasks] = useState([]);
     const [tags, setTags] = useState([]);
     const [saving, setSaving] = useState(false);
+    const { session } = useAuth();
+    const [sendingReminder, setSendingReminder] = useState(false);
+    const [reminderFeedback, setReminderFeedback] = useState('');
+
+
+    const handleSendManualReminder = async () => {
+        if (!note?.id || sendingReminder) return;
+        setSendingReminder(true);
+        setReminderFeedback('');
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/notas/${note.id}/remind`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${session?.access_token}`,
+                },
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setReminderFeedback('¡Enviado a tu correo!');
+            } else {
+                setReminderFeedback(data.error || 'Error al enviar');
+            }
+        } catch {
+            setReminderFeedback('Error de conexión');
+        } finally {
+            setSendingReminder(false);
+        }
+    };
 
     const [isAddingSubtask, setIsAddingSubtask] = useState(false);
     const [activeSidebarMenu, setActiveSidebarMenu] = useState(null);
@@ -151,6 +181,35 @@ export function TaskModal({
                                 isAdding={isAddingSubtask}
                                 setIsAdding={setIsAddingSubtask}
                             />
+
+                            {note && (
+                                <div className="pl-8">
+                                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 px-4 py-3">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                                                <Bell className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-semibold text-slate-700">
+                                                    Alerta por correo
+                                                </p>
+                                                <p className="text-[11px] text-slate-400">
+                                                    Envía los detalles de esta tarea a tu bandeja
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleSendManualReminder}
+                                            disabled={sendingReminder}
+                                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 disabled:opacity-50"
+                                        >
+                                            {sendingReminder ? 'Enviando...' : reminderFeedback || 'Enviar ahora'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             {note?.created_at && (
                                 <div className="space-y-0.5 border-t border-slate-100 pt-4 pl-8 text-xs text-slate-400">
