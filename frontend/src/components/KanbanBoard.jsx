@@ -12,6 +12,7 @@ export function KanbanBoard({
   setNotes,
   deleteNote,
   loading,
+  saveNote,
   updateNotePosition,
   onNewTask,
   onEditTask,
@@ -119,6 +120,7 @@ export function KanbanBoard({
               onDeleteNote={deleteNote}
               onEditNote={onEditTask}
               onAddNote={onNewTask}
+              onQuickCreate={saveNote}
             />
           ))}
         </section>
