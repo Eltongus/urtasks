@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
 import { DndContext, DragOverlay, closestCorners } from '@dnd-kit/core';
-import { useAuth } from '../context/AuthContext';
 import { KANBAN_COLUMNS } from '../constants/kanban';
-import { useNotes } from '../hooks/useNotes';
 import { useKanbanDnd } from '../hooks/useKanbanDnd';
 import { BoardHeader } from './BoardHeader';
 import { KanbanColumn } from './KanbanColumn';

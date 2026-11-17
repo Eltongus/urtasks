@@ -3,7 +3,7 @@ import { supabase } from './lib/supabase'
 async function request(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession()
 
-  const res = await fetch(`https://repulsive-tomb-x5xwx5j56674h9qw6-3000.app.github.dev/api${path}`, {
+  const res = await fetch(`https://urtasks-s1qo.onrender.com/api${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
